@@ -9,17 +9,17 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20Pausable
 /**
  * This contract is used to deploy the volatility and inverse volatility tokens.
  */
-contract VolmexPositionToken is
+contract DefragPositionToken is
     Initializable,
     AccessControlUpgradeable,
     ERC20PausableUpgradeable
 {
-    // Position token role, calculated as keccak256("VOLMEX_PROTOCOL_ROLE")
-    bytes32 public constant VOLMEX_PROTOCOL_ROLE =
+    // Position token role, calculated as keccak256("DEFRAG_PROTOCOL_ROLE")
+    bytes32 public constant DEFRAG_PROTOCOL_ROLE =
         0x33ba6006595f7ad5c59211bde33456cab351f47602fc04f644c8690bc73c4e16;
 
     /**
-     * @dev Grants `DEFAULT_ADMIN_ROLE` and `VOLMEX_PROTOCOL_ROLE` to the
+     * @dev Grants `DEFAULT_ADMIN_ROLE` and `DEFRAG_PROTOCOL_ROLE` to the
      * account that deploys the contract.
      *
      * See {ERC20-constructor}.
@@ -35,7 +35,7 @@ contract VolmexPositionToken is
         __ERC165_init();
 
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _setupRole(VOLMEX_PROTOCOL_ROLE, msg.sender);
+        _setupRole(DEFRAG_PROTOCOL_ROLE, msg.sender);
     }
 
     /**
@@ -45,12 +45,12 @@ contract VolmexPositionToken is
      *
      * Requirements:
      *
-     * - the caller must have the `VOLMEX_PROTOCOL_ROLE`.
+     * - the caller must have the `DEFRAG_PROTOCOL_ROLE`.
      */
     function mint(address to, uint256 amount) public virtual {
         require(
-            hasRole(VOLMEX_PROTOCOL_ROLE, msg.sender),
-            "VolmexPositionToken: must have volmex protocol role to mint"
+            hasRole(DEFRAG_PROTOCOL_ROLE, msg.sender),
+            "DefragPositionToken: must have defrag protocol role to mint"
         );
         _mint(to, amount);
     }
@@ -62,8 +62,8 @@ contract VolmexPositionToken is
      */
     function burn(address from, uint256 amount) public virtual {
         require(
-            hasRole(VOLMEX_PROTOCOL_ROLE, msg.sender),
-            "VolmexPositionToken: must have volmex protocol role to burn"
+            hasRole(DEFRAG_PROTOCOL_ROLE, msg.sender),
+            "DefragPositionToken: must have defrag protocol role to burn"
         );
         _burn(from, amount);
     }
@@ -75,12 +75,12 @@ contract VolmexPositionToken is
      *
      * Requirements:
      *
-     * - the caller must have the `VOLMEX_PROTOCOL_ROLE`.
+     * - the caller must have the `DEFRAG_PROTOCOL_ROLE`.
      */
     function pause() public virtual {
         require(
-            hasRole(VOLMEX_PROTOCOL_ROLE, msg.sender),
-            "VolmexPositionToken: must have volmex protocol role to pause"
+            hasRole(DEFRAG_PROTOCOL_ROLE, msg.sender),
+            "DefragPositionToken: must have defrag protocol role to pause"
         );
         _pause();
     }
@@ -92,12 +92,12 @@ contract VolmexPositionToken is
      *
      * Requirements:
      *
-     * - the caller must have the `VOLMEX_PROTOCOL_ROLE`.
+     * - the caller must have the `DEFRAG_PROTOCOL_ROLE`.
      */
     function unpause() public virtual {
         require(
-            hasRole(VOLMEX_PROTOCOL_ROLE, msg.sender),
-            "VolmexPositionToken: must have volmex protocol role to unpause"
+            hasRole(DEFRAG_PROTOCOL_ROLE, msg.sender),
+            "DefragPositionToken: must have defrag protocol role to unpause"
         );
         _unpause();
     }
