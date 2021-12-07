@@ -7,23 +7,23 @@ import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 import "./interfaces/IERC20Modified.sol";
-import "./library/VolmexSafeERC20.sol";
+import "./library/DefragSafeERC20.sol";
 
 /**
  * @title Protocol Contract
- * @author Volmex [security@volmexlabs.com]
+ * @author Defrag [security@volmexlabs.com]
  */
-contract VolmexProtocol is
+contract DefragProtocol is
     Initializable,
     OwnableUpgradeable,
     ReentrancyGuardUpgradeable
 {
-    using VolmexSafeERC20 for IERC20Modified;
+    using DefragSafeERC20 for IERC20Modified;
 
     event ToggleActivated(bool isActive);
-    event UpdatedVolatilityToken(
+    event UpdatedDefragToken(
         address indexed positionToken,
-        bool isVolatilityIndexToken
+        bool isDefragIndexToken
     );
     event UpdatedFees(uint256 issuanceFees, uint256 redeemFees);
     event UpdatedMinimumCollateral(uint256 newMinimumCollateralQty);
