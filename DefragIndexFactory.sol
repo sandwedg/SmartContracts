@@ -6,7 +6,7 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
 
 import "./interfaces/IERC20Modified.sol";
-import "./tokens/VolmexPositionToken.sol";
+import "./tokens/DefragPositionToken.sol";
 import "./VolmexProtocol.sol";
 
 /**
@@ -19,27 +19,27 @@ contract VolmexIndexFactory is OwnableUpgradeable {
     );
 
     event VolatilityTokenCreated(
-        IERC20Modified indexed volatilityToken,
-        IERC20Modified indexed inverseVolatilityToken,
+        IERC20Modified indexed DefragToken,
+        IERC20Modified indexed inverseDefragToken,
         string tokenName,
         string tokenSymbol
     );
 
-    // Volatility token implementation contract for factory
+    // Defrag token implementation contract for factory
     address public positionTokenImplementation;
 
-    // To store the address of volatility.
+    // To store the address of Defrag.
     mapping(uint256 => address) public getIndex;
 
-    // To store the name of volatility
+    // To store the name of Defrag
     mapping(uint256 => string) public getIndexSymbol;
 
-    // Used to store the address and name of volatility at a particular _index (incremental state of 1)
+    // Used to store the address and name of defragf at a particular _index (incremental state of 1)
     uint256 public indexCount;
 
     // These are position token roles
-    // Calculated as keccak256("VOLMEX_PROTOCOL_ROLE").
-    bytes32 private constant VOLMEX_PROTOCOL_ROLE =
+    // Calculated as keccak256("DEFRAG_PROTOCOL_ROLE").
+    bytes32 private constant DEFRAG_PROTOCOL_ROLE =
         0x33ba6006595f7ad5c59211bde33456cab351f47602fc04f644c8690bc73c4e16;
 
     // Referenced from Openzepplin AccessControl.sol
@@ -57,7 +57,7 @@ contract VolmexIndexFactory is OwnableUpgradeable {
     /**
      * @notice Get the counterfactual address of position token implementation
      */
-    function determineVolatilityTokenAddress(
+    function determineDefragTokenAddress(
         uint256 _indexCount,
         string memory _name,
         string memory _symbol
@@ -72,73 +72,73 @@ contract VolmexIndexFactory is OwnableUpgradeable {
     }
 
     /**
-     * @notice Clones new volatility tokens - { returns volatility tokens address typecasted to IERC20Modified }
+     * @notice Clones new Defrag tokens - { returns Defrag tokens address typecasted to IERC20Modified }
      *
      * @dev Increment the indexCount by 1
      * @dev Check if state is at NotInitialized
-     * @dev Clones the volatility and inverse volatility tokens
-     * @dev Stores the volatility name, referenced by indexCount
-     * @dev Emits event of volatility token name & symbol, indexCount(position), position tokens address
+     * @dev Clones the Defrag and inverse volatility tokens
+     * @dev Stores the Defrag name, referenced by indexCount
+     * @dev Emits event of Defrag token name & symbol, indexCount(position), position tokens address
      *
-     * @param _tokenName is the name for volatility
-     * @param _tokenSymbol is the symbol for volatility
+     * @param _tokenName is the name for Defrag
+     * @param _tokenSymbol is the symbol for Defrag
      */
-    function createVolatilityTokens(
+    function createDefragTokens(
         string memory _tokenName,
         string memory _tokenSymbol
     )
         external
         onlyOwner
         returns (
-            IERC20Modified volatilityToken,
-            IERC20Modified inverseVolatilityToken
+            IERC20Modified Token,
+            IERC20Modified inverseDefragToken
         )
     {
-        volatilityToken = IERC20Modified(
+        DefragToken = IERC20Modified(
             _clonePositonToken(_tokenName, _tokenSymbol)
         );
-        inverseVolatilityToken = IERC20Modified(
+        inverseDefragToken = IERC20Modified(
             _clonePositonToken(
                 string(abi.encodePacked("Inverse ", _tokenName)),
                 string(abi.encodePacked("i", _tokenSymbol))
             )
         );
 
-        emit VolatilityTokenCreated(
-            volatilityToken,
-            inverseVolatilityToken,
+        emit DefragTokenCreated(
+            DefragToken,
+            inverseDefragToken,
             _tokenName,
             _tokenSymbol
         );
     }
 
     /**
-     * @notice Registers the Volmex Protocol
+     * @notice Registers the Defrag Protocol
      *
-     * @dev Check if state is at VolatilitysCreated
+     * @dev Check if state is at DefragCreated
      * @dev Stores index address, referenced by indexCount
-     * @dev Grants the VOLMEX_PROTOCOL_ROLE and DEFAULT_ADMIN_ROLE to protocol
+     * @dev Grants the DEFRAG_PROTOCOL_ROLE and DEFAULT_ADMIN_ROLE to protocol
      * @dev Update index state to Completed
      * @dev Emit event of index registered with indexCount and index address
      *
-     * @param _volmexProtocolContract Address of VolmexProtocol typecasted to VolmexProtocol
+     * @param _volmexProtocolContract Address of DefragProtocol typecasted to DefragProtocol
      * @param _collateralSymbol Symbol of collateral used
      */
     function registerIndex(
-        VolmexProtocol _volmexProtocolContract,
+        DefragProtocol _DefragProtocolContract,
         string memory _collateralSymbol
     ) external onlyOwner {
         indexCount++;
 
-        getIndex[indexCount] = address(_volmexProtocolContract);
+        getIndex[indexCount] = address(_DefragProtocolContract);
 
-        IERC20Modified volatilityToken =
-            _volmexProtocolContract.volatilityToken();
-        IERC20Modified inverseVolatilityToken =
-            _volmexProtocolContract.inverseVolatilityToken();
+        IERC20Modified DefragToken =
+            _DefragProtocolContract.DefragToken();
+        IERC20Modified inverseDefragToken =
+            _DefragProtocolContract.inverseDefragToken();
 
         getIndexSymbol[indexCount] = string(
-            abi.encodePacked(volatilityToken.symbol(), _collateralSymbol)
+            abi.encodePacked(DefragToken.symbol(), _collateralSymbol)
         );
 
         volatilityToken.grantRole(
