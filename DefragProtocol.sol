@@ -39,8 +39,8 @@ contract DefragProtocol is
     event Redeemed(
         address indexed sender,
         uint256 collateralReleased,
-        uint256 volatilityIndexTokenBurned,
-        uint256 inverseVolatilityIndexTokenBurned,
+        uint256 DefragIndexTokenBurned,
+        uint256 inverseDefragIndexTokenBurned,
         uint256 fees
     );
 
@@ -54,8 +54,8 @@ contract DefragProtocol is
     bool public isSettled;
 
     // Volatility tokens
-    IERC20Modified public volatilityToken;
-    IERC20Modified public inverseVolatilityToken;
+    IERC20Modified public DefragToken;
+    IERC20Modified public inverseDefragToken;
 
     // Only ERC20 standard functions are used by the collateral defined here.
     // Address of the acceptable collateral token.
@@ -77,15 +77,15 @@ contract DefragProtocol is
     // No need to add 18 decimals, because they are already considered in respective token qty arguments.
     uint256 public volatilityCapRatio;
 
-    // This is the price of volatility index, ranges from 0 to volatilityCapRatio,
-    // and the inverse can be calculated by subtracting volatilityCapRatio by settlementPrice.
+    // This is the price of Defrag index, ranges from 0 to DefragCapRatio,
+    // and the inverse can be calculated by subtracting DefragCapRatio by settlementPrice.
     uint256 public settlementPrice;
 
     /**
      * @notice Used to check contract is active
      */
     modifier onlyActive() {
-        require(active, "Volmex: Protocol not active");
+        require(active, "Defrag: Protocol not active");
         _;
     }
 
@@ -93,7 +93,7 @@ contract DefragProtocol is
      * @notice Used to check contract is not settled
      */
     modifier onlyNotSettled() {
-        require(!isSettled, "Volmex: Protocol settled");
+        require(!isSettled, "Defrag: Protocol settled");
         _;
     }
 
@@ -101,7 +101,7 @@ contract DefragProtocol is
      * @notice Used to check contract is settled
      */
     modifier onlySettled() {
-        require(isSettled, "Volmex: Protocol not settled");
+        require(isSettled, "Defrag: Protocol not settled");
         _;
     }
 
@@ -110,13 +110,13 @@ contract DefragProtocol is
      * @dev Sets the `minimumCollateralQty`
      * @dev Makes the collateral token as `collateral`
      * @dev Assign position tokens
-     * @dev Sets the `volatilityCapRatio`
+     * @dev Sets the `DefragCapRatio`
      *
      * @param _collateralTokenAddress is address of collateral token typecasted to IERC20Modified
      * @param _volatilityToken is address of volatility index token typecasted to IERC20Modified
-     * @param _inverseVolatilityToken is address of inverse volatility index token typecasted to IERC20Modified
-     * @param _minimumCollateralQty is the minimum qty of tokens need to mint 0.1 volatility and inverse volatility tokens
-     * @param _volatilityCapRatio is the cap for volatility
+     * @param _inverseVolatilityToken is address of inverse Defrag index token typecasted to IERC20Modified
+     * @param _minimumCollateralQty is the minimum qty of tokens need to mint 0.1 Defrag and inverse Defrag tokens
+     * @param _DefragCapRatio is the cap for Defrag
      */
     function initialize(
         IERC20Modified _collateralTokenAddress,
