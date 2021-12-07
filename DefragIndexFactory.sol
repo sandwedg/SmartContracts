@@ -121,7 +121,7 @@ contract DefragIndexFactory is OwnableUpgradeable {
      * @dev Update index state to Completed
      * @dev Emit event of index registered with indexCount and index address
      *
-     * @param _volmexProtocolContract Address of DefragProtocol typecasted to DefragProtocol
+     * @param _DefragProtocolContract Address of DefragProtocol typecasted to DefragProtocol
      * @param _collateralSymbol Symbol of collateral used
      */
     function registerIndex(
@@ -141,12 +141,12 @@ contract DefragIndexFactory is OwnableUpgradeable {
             abi.encodePacked(DefragToken.symbol(), _collateralSymbol)
         );
 
-        volatilityToken.grantRole(
+        DefragToken.grantRole(
             DEFRAG_PROTOCOL_ROLE,
-            address(_volmexProtocolContract)
+            address(_DefragProtocolContract)
         );
 
-        inverseVolatilityToken.grantRole(
+        inverseDefragToken.grantRole(
             DEFRAG_PROTOCOL_ROLE,
             address(_DefragProtocolContract)
         );
@@ -165,8 +165,8 @@ contract DefragIndexFactory is OwnableUpgradeable {
      * @dev Clone the position token implementation with a salt make it deterministic
      * @dev Initializes the position token
      *
-     * @param _name is the name of volatility token
-     * @param _symbol is the symbol of volatility token
+     * @param _name is the name of Defrag token
+     * @param _symbol is the symbol of Defrag token
      */
     function _clonePositonToken(string memory _name, string memory _symbol)
         private
@@ -174,12 +174,12 @@ contract DefragIndexFactory is OwnableUpgradeable {
     {
         bytes32 salt = keccak256(abi.encodePacked(indexCount, _name, _symbol));
 
-        VolmexPositionToken newVolatilityToken =
-            VolmexPositionToken(
+        DefragPositionToken newVolatilityToken =
+            DefragPositionToken(
                 Clones.cloneDeterministic(positionTokenImplementation, salt)
             );
-        newVolatilityToken.initialize(_name, _symbol);
+        newDefragToken.initialize(_name, _symbol);
 
-        return address(newVolatilityToken);
+        return address(newDefragToken);
     }
 }
