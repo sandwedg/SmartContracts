@@ -7,15 +7,15 @@ import "@openzeppelin/contracts/proxy/Clones.sol";
 
 import "./interfaces/IERC20Modified.sol";
 import "./tokens/DefragPositionToken.sol";
-import "./VolmexProtocol.sol";
+import "./DefragProtocol.sol";
 
 /**
  * Factory is used to register respective index and clone position tokens
  */
-contract VolmexIndexFactory is OwnableUpgradeable {
+contract DefragIndexFactory is OwnableUpgradeable {
     event IndexRegistered(
         uint256 indexed indexCount,
-        VolmexProtocol indexed index
+        DefragProtocol indexed index
     );
 
     event VolatilityTokenCreated(
@@ -142,20 +142,20 @@ contract VolmexIndexFactory is OwnableUpgradeable {
         );
 
         volatilityToken.grantRole(
-            VOLMEX_PROTOCOL_ROLE,
+            DEFRAG_PROTOCOL_ROLE,
             address(_volmexProtocolContract)
         );
 
         inverseVolatilityToken.grantRole(
-            VOLMEX_PROTOCOL_ROLE,
-            address(_volmexProtocolContract)
+            DEFRAG_PROTOCOL_ROLE,
+            address(_DefragProtocolContract)
         );
 
-        volatilityToken.grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        DefragToken.grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
 
-        inverseVolatilityToken.grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        inverseDefragToken.grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
 
-        emit IndexRegistered(indexCount, _volmexProtocolContract);
+        emit IndexRegistered(indexCount, _DefragProtocolContract);
     }
 
     /**
