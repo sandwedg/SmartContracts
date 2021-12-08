@@ -5,17 +5,17 @@ pragma solidity =0.8.4;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /**
- * @title VolmexSafeERC20
+ * @title DefragSafeERC20
  * @dev Wrappers around ERC20 operations that throw on failure (when the token
  * contract returns false). Tokens that return no value (and instead revert or
  * throw on failure) are also supported, non-reverting calls are assumed to be
  * successful.
- * To use this library you can add a `using VolmexSafeERC20 for IERC20;` statement to your contract,
+ * To use this library you can add a `using DefragSafeERC20 for IERC20;` statement to your contract,
  * which allows you to call the safe operations as `token.safeTransfer(...)`, etc.
  *
  * NOTE: Inspired from Openzeppelin's SafeERC20 library.
  */
-library VolmexSafeERC20 {
+library DefragSafeERC20 {
     function safeTransfer(IERC20 token, address to, uint256 value) internal {
         _callOptionalReturn(token, abi.encodeWithSelector(token.transfer.selector, to, value));
     }
@@ -37,7 +37,7 @@ library VolmexSafeERC20 {
         // 'safeIncreaseAllowance' and 'safeDecreaseAllowance'
         // solhint-disable-next-line max-line-length
         require((value == 0) || (token.allowance(address(this), spender) == 0),
-            "VolmexSafeERC20: approve from non-zero to non-zero allowance"
+            "DefragSafeERC20: approve from non-zero to non-zero allowance"
         );
         _callOptionalReturn(token, abi.encodeWithSelector(token.approve.selector, spender, value));
     }
@@ -67,10 +67,10 @@ library VolmexSafeERC20 {
         // we're implementing it ourselves. We use {functionCall} to perform this call, which verifies that
         // the target address contains contract code and also asserts for success in the low-level call.
 
-        bytes memory returndata = functionCall(address(token), data, "VolmexSafeERC20: low-level call failed");
+        bytes memory returndata = functionCall(address(token), data, "DefragSafeERC20: low-level call failed");
         if (returndata.length > 0) { // Return data is optional
             // solhint-disable-next-line max-line-length
-            require(abi.decode(returndata, (bool)), "VolmexSafeERC20: ERC20 operation did not succeed");
+            require(abi.decode(returndata, (bool)), "DefragSafeERC20: ERC20 operation did not succeed");
         }
     }
 
@@ -80,7 +80,7 @@ library VolmexSafeERC20 {
      *
      */
     function functionCall(address target, bytes memory data, string memory errorMessage) internal returns (bytes memory) {
-        require(isContract(target), "VolmexSafeERC20: call to non-contract");
+        require(isContract(target), "DefragSafeERC20: call to non-contract");
 
         // solhint-disable-next-line avoid-low-level-calls
         (bool success, bytes memory returndata) = target.call{ value: 0 }(data);
