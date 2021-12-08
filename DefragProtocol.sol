@@ -130,7 +130,7 @@ contract DefragProtocol is
 
         require(
             _minimumCollateralQty > 0,
-            "Volmex: Minimum collateral quantity should be greater than 0"
+            "Defrag: Minimum collateral quantity should be greater than 0"
         );
 
         active = true;
@@ -159,7 +159,7 @@ contract DefragProtocol is
     {
         require(
             _newMinimumCollQty > 0,
-            "Volmex: Minimum collateral quantity should be greater than 0"
+            "Defrag: Minimum collateral quantity should be greater than 0"
         );
         minimumCollateralQty = _newMinimumCollQty;
         emit UpdatedMinimumCollateral(_newMinimumCollQty);
