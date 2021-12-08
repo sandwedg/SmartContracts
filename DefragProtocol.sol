@@ -11,7 +11,7 @@ import "./library/DefragSafeERC20.sol";
 
 /**
  * @title Protocol Contract
- * @author Defrag [security@volmexlabs.com]
+ * @author Defrag [security@defrag.com]
  */
 contract DefragProtocol is
     Initializable,
@@ -53,7 +53,7 @@ contract DefragProtocol is
     // Has the boolean state of protocol settlement
     bool public isSettled;
 
-    // Volatility tokens
+    // Defrag tokens
     IERC20Modified public DefragToken;
     IERC20Modified public inverseDefragToken;
 
@@ -75,7 +75,7 @@ contract DefragProtocol is
     uint256 constant MAX_FEE = 500;
 
     // No need to add 18 decimals, because they are already considered in respective token qty arguments.
-    uint256 public volatilityCapRatio;
+    uint256 public DefragCapRatio;
 
     // This is the price of Defrag index, ranges from 0 to DefragCapRatio,
     // and the inverse can be calculated by subtracting DefragCapRatio by settlementPrice.
@@ -113,17 +113,17 @@ contract DefragProtocol is
      * @dev Sets the `DefragCapRatio`
      *
      * @param _collateralTokenAddress is address of collateral token typecasted to IERC20Modified
-     * @param _volatilityToken is address of volatility index token typecasted to IERC20Modified
-     * @param _inverseVolatilityToken is address of inverse Defrag index token typecasted to IERC20Modified
+     * @param _DefragToken is address of Defrag token typecasted to IERC20Modified
+     * @param _inverseDefragToken is address of inverse Defrag index token typecasted to IERC20Modified
      * @param _minimumCollateralQty is the minimum qty of tokens need to mint 0.1 Defrag and inverse Defrag tokens
      * @param _DefragCapRatio is the cap for Defrag
      */
     function initialize(
         IERC20Modified _collateralTokenAddress,
-        IERC20Modified _volatilityToken,
-        IERC20Modified _inverseVolatilityToken,
+        IERC20Modified _DefragToken,
+        IERC20Modified _inverseDefragToken,
         uint256 _minimumCollateralQty,
-        uint256 _volatilityCapRatio
+        uint256 _DefragCapRatio
     ) external initializer {
         __Ownable_init();
         __ReentrancyGuard_init();
@@ -136,9 +136,9 @@ contract DefragProtocol is
         active = true;
         minimumCollateralQty = _minimumCollateralQty;
         collateral = _collateralTokenAddress;
-        volatilityToken = _volatilityToken;
-        inverseVolatilityToken = _inverseVolatilityToken;
-        volatilityCapRatio = _volatilityCapRatio;
+        DefragToken = _DefragToken;
+        inverseDefragToken = _inverseDefragToken;
+        DefragCapRatio = _DefragCapRatio;
     }
 
     /**
@@ -166,18 +166,18 @@ contract DefragProtocol is
     }
 
     /**
-     * @notice Update the {Volatility Token}
+     * @notice Update the {Defrag Token}
      * @param _positionToken Address of the new position token
-     * @param _isVolatilityIndexToken Type of the position token, { VolatilityIndexToken: true, InverseVolatilityIndexToken: false }
+     * @param _isDefragIndexToken Type of the position token, { DefragIndexToken: true, InverseDefragIndexToken: false }
      */
-    function updateVolatilityToken(
+    function updateDefragToken(
         address _positionToken,
-        bool _isVolatilityIndexToken
+        bool _isDefragIndexToken
     ) external onlyOwner {
-        _isVolatilityIndexToken
-            ? volatilityToken = IERC20Modified(_positionToken)
-            : inverseVolatilityToken = IERC20Modified(_positionToken);
-        emit UpdatedVolatilityToken(_positionToken, _isVolatilityIndexToken);
+        _isDefragIndexToken
+            ? DefragToken = IERC20Modified(_positionToken)
+            : inverseDefragToken = IERC20Modified(_positionToken);
+        emit UpdatedDefragToken(_positionToken, _isDefragIndexToken);
     }
 
     /**
@@ -197,7 +197,7 @@ contract DefragProtocol is
     {
         require(
             _collateralQty >= minimumCollateralQty,
-            "Volmex: CollateralQty > minimum qty required"
+            "Defrag: CollateralQty > minimum qty required"
         );
 
         // Mechanism to calculate the collateral qty using the increase in balance
@@ -217,8 +217,8 @@ contract DefragProtocol is
 
         uint256 qtyToBeMinted = _collateralQty / volatilityCapRatio;
 
-        volatilityToken.mint(msg.sender, qtyToBeMinted);
-        inverseVolatilityToken.mint(msg.sender, qtyToBeMinted);
+        DefragToken.mint(msg.sender, qtyToBeMinted);
+        inverseDefragToken.mint(msg.sender, qtyToBeMinted);
 
         emit Collateralized(msg.sender, _collateralQty, qtyToBeMinted, fee);
     }
@@ -228,7 +228,7 @@ contract DefragProtocol is
      *
      * @param _positionTokenQty Quantity of the position token that the user is surrendering
      *
-     * Amount of collateral is `_positionTokenQty` by the volatilityCapRatio.
+     * Amount of collateral is `_positionTokenQty` by the DefragCapRatio.
      * Burn the position token
      *
      * Safely transfer the collateral to `msg.sender`
@@ -238,7 +238,7 @@ contract DefragProtocol is
         onlyActive
         onlyNotSettled
     {
-        uint256 collQtyToBeRedeemed = _positionTokenQty * volatilityCapRatio;
+        uint256 collQtyToBeRedeemed = _positionTokenQty * DefragCapRatio;
 
         _redeem(collQtyToBeRedeemed, _positionTokenQty, _positionTokenQty);
     }
@@ -246,28 +246,28 @@ contract DefragProtocol is
     /**
      * @notice Redeem the collateral from the protocol after settlement
      *
-     * @param _volatilityIndexTokenQty Quantity of the volatility index token that the user is surrendering
-     * @param _inverseVolatilityIndexTokenQty Quantity of the inverse volatility index token that the user is surrendering
+     * @param _DefragIndexTokenQty Quantity of the Defrag index token that the user is surrendering
+     * @param _inverseDefragIndexTokenQty Quantity of the inverse Defrag index token that the user is surrendering
      *
-     * Amount of collateral is `_volatilityIndexTokenQty` by the settlementPrice and `_inverseVolatilityIndexTokenQty`
-     * by volatilityCapRatio - settlementPrice
+     * Amount of collateral is `_DefragIndexTokenQty` by the settlementPrice and `_inverseDefragIndexTokenQty`
+     * by DefragCapRatio - settlementPrice
      * Burn the position token
      *
      * Safely transfer the collateral to `msg.sender`
      */
     function redeemSettled(
-        uint256 _volatilityIndexTokenQty,
-        uint256 _inverseVolatilityIndexTokenQty
+        uint256 _DefragIndexTokenQty,
+        uint256 _inverseDefragIndexTokenQty
     ) external onlyActive onlySettled {
         uint256 collQtyToBeRedeemed =
-            (_volatilityIndexTokenQty * settlementPrice) +
-                (_inverseVolatilityIndexTokenQty *
-                    (volatilityCapRatio - settlementPrice));
+            (_DefragIndexTokenQty * settlementPrice) +
+                (_inverseDefragIndexTokenQty *
+                    (DefragCapRatio - settlementPrice));
 
         _redeem(
             collQtyToBeRedeemed,
-            _volatilityIndexTokenQty,
-            _inverseVolatilityIndexTokenQty
+            _DefragIndexTokenQty,
+            _inverseDefragIndexTokenQty
         );
     }
 
@@ -276,7 +276,7 @@ contract DefragProtocol is
      *
      * @param _settlementPrice The price of the volatility index after settlement
      *
-     * The inverse volatility index token at settlement is worth volatilityCapRatio - volatility index settlement price
+     * The inverse defrag token at settlement is worth DefragCapRatio - Defrag index settlement price
      */
     function settle(uint256 _settlementPrice)
         external
@@ -284,8 +284,8 @@ contract DefragProtocol is
         onlyNotSettled
     {
         require(
-            _settlementPrice <= volatilityCapRatio,
-            "Volmex: _settlementPrice should be less than equal to volatilityCapRatio"
+            _settlementPrice <= DefragCapRatio,
+            "Defrag: _settlementPrice should be less than equal to DefragCapRatio"
         );
         settlementPrice = _settlementPrice;
         isSettled = true;
@@ -302,7 +302,7 @@ contract DefragProtocol is
     ) external nonReentrant onlyOwner {
         require(
             _token != address(collateral),
-            "Volmex: Collateral token not allowed"
+            "Defrag: Collateral token not allowed"
         );
         IERC20Modified(_token).safeTransfer(_toWhom, _howMuch);
     }
@@ -319,7 +319,7 @@ contract DefragProtocol is
     {
         require(
             _issuanceFees <= MAX_FEE && _redeemFees <= MAX_FEE,
-            "Volmex: issue/redeem fees should be less than MAX_FEE"
+            "Defrag: issue/redeem fees should be less than MAX_FEE"
         );
 
         issuanceFees = _issuanceFees;
@@ -341,26 +341,26 @@ contract DefragProtocol is
     }
 
     /**
-     * @notice Pause/unpause volmex position token.
+     * @notice Pause/unpause Defrag position token.
      *
      * @param _isPause Boolean value to pause or unpause the position token { true = pause, false = unpause }
      */
     function togglePause(bool _isPause) external onlyOwner {
         if (_isPause) {
-            volatilityToken.pause();
-            inverseVolatilityToken.pause();
+            DefragToken.pause();
+            inverseDefragToken.pause();
         } else {
-            volatilityToken.unpause();
-            inverseVolatilityToken.unpause();
+            DefragToken.unpause();
+            inverseDefragToken.unpause();
         }
 
-        emit ToggledVolatilityTokenPause(_isPause);
+        emit ToggledDefragTokenPause(_isPause);
     }
 
     function _redeem(
         uint256 _collateralQtyRedeemed,
-        uint256 _volatilityIndexTokenQty,
-        uint256 _inverseVolatilityIndexTokenQty
+        uint256 _DefragIndexTokenQty,
+        uint256 _inverseDefragIndexTokenQty
     ) internal {
         uint256 fee;
         if (redeemFees > 0) {
@@ -369,10 +369,10 @@ contract DefragProtocol is
             accumulatedFees = accumulatedFees + fee;
         }
 
-        volatilityToken.burn(msg.sender, _volatilityIndexTokenQty);
-        inverseVolatilityToken.burn(
+        DefragToken.burn(msg.sender, _DefragIndexTokenQty);
+        inverseDefragToken.burn(
             msg.sender,
-            _inverseVolatilityIndexTokenQty
+            _inverseDefragIndexTokenQty
         );
 
         collateral.safeTransfer(msg.sender, _collateralQtyRedeemed);
@@ -380,8 +380,8 @@ contract DefragProtocol is
         emit Redeemed(
             msg.sender,
             _collateralQtyRedeemed,
-            _volatilityIndexTokenQty,
-            _inverseVolatilityIndexTokenQty,
+            _DefragIndexTokenQty,
+            _inverseDefragIndexTokenQty,
             fee
         );
     }
